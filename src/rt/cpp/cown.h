@@ -44,9 +44,8 @@ namespace verona::cpp
   class ActualCown : public VCown<ActualCown<T>>
   {
   private:
-    T value;
 
-    template<typename... Args>
+      template<typename... Args>
     ActualCown(Args&&... ts) : value(std::forward<Args>(ts)...)
     {}
 
@@ -58,6 +57,9 @@ namespace verona::cpp
 
     template<typename TT, typename... Args>
     friend cown_ptr<TT> make_cown(Args&&... ts);
+
+  public:
+      T value;
   };
 
   /**
@@ -189,30 +191,29 @@ namespace verona::cpp
       }
     };
 
+      /**
+           * Construct a new cown ptr object, actually allocates a runtime cown.
+           *
+           * This is internal, and the `make_cown` below is the public interface,
+           * which has better behaviour for implicit template arguments.
+           */
+      cown_ptr(ActualCown<T>* cown) : allocated_cown(cown) {}
+
+      /**
+           * Internal Verona runtime cown for this type.
+           */
+      ActualCown<T>* allocated_cown{nullptr};
   private:
     template<typename TT>
     friend class Access;
 
-    /**
-     * Internal Verona runtime cown for this type.
-     */
-    ActualCown<T>* allocated_cown{nullptr};
-
-    /**
-     * Accesses the internal Verona runtime cown for this handle.
-     */
+      /**
+       * Accesses the internal Verona runtime cown for this handle.
+       */
     Cown* underlying_cown()
     {
       return allocated_cown;
     }
-
-    /**
-     * Construct a new cown ptr object, actually allocates a runtime cown.
-     *
-     * This is internal, and the `make_cown` below is the public interface,
-     * which has better behaviour for implicit template arguments.
-     */
-    cown_ptr(ActualCown<T>* cown) : allocated_cown(cown) {}
 
   public:
     constexpr cown_ptr() = default;

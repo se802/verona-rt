@@ -62,18 +62,6 @@ inline void busy_loop(size_t u_sec)
 class SystematicTestHarness
 {
   size_t seed = 0;
-  /**
-   * External threads created during execution can only be joined once
-   * sched.run() is finished. Not joining on these threads can lead to a race
-   * between their destruction and operations such as
-   * snmalloc::debug_check_empty. Since the test has no way to detect when the
-   * execution has finished, we make the harness responsible for tracking and
-   * joining on external threads.
-   *
-   * Storage type is verona::PlatformThread, so that the harness can be reused
-   * on platforms with custom threading.
-   */
-  std::list<PlatformThread> external_threads;
 
 public:
   opt::Opt opt;
@@ -218,4 +206,17 @@ public:
     check(seed != 0);
     return seed;
   }
+
+/**
+ * External threads created during execution can only be joined once
+ * sched.run() is finished. Not joining on these threads can lead to a race
+ * between their destruction and operations such as
+ * snmalloc::debug_check_empty. Since the test has no way to detect when the
+ * execution has finished, we make the harness responsible for tracking and
+ * joining on external threads.
+ *
+ * Storage type is verona::PlatformThread, so that the harness can be reused
+ * on platforms with custom threading.
+ */
+std::list<PlatformThread> external_threads;
 };
